@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameVault | Every Mobile Game. One Place.</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg: #050505;
+            --surface: rgba(255, 255, 255, 0.05);
+            --glass: rgba(255, 255, 255, 0.1);
+            --accent-p: #bc13fe; /* Neon Purple */
+            --accent-c: #00f2ff; /* Neon Cyan */
+            --accent-f: #ff007a; /* Neon Pink */
+            --text: #ffffff;
+            --text-dim: #b0b0b0;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* --- Custom Scrollbar --- */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { 
+            background: linear-gradient(var(--accent-p), var(--accent-c)); 
+            border-radius: 10px;
+        }
+
+        /* --- Loading Overlay --- */
+        #loader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--glass);
+            border-top-color: var(--accent-c);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* --- Layout Containers --- */
+        .container { max-width: 1300px; margin: 0 auto; padding: 0 20px; }
+
+        /* --- Navbar --- */
+        nav {
+            position: fixed;
+            top: 0; width: 100%;
+            padding: 15px 0;
+            background: rgba(5, 5, 5, 0.8);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass);
+        }
+        .nav-content { display: flex; justify-content: space-between; align-items: center; }
+        .logo { 
+            font-size: 24px; font-weight: 800; 
+            background: linear-gradient(45deg, var(--accent-p), var(--accent-c));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .nav-links { display: flex; gap: 25px; align-items: center; }
+        .nav-links a { text-decoration: none; color: var(--text-dim); font-weight: 500; transition: var(--transition); }
+        .nav-links a:hover { color: var(--accent-c); }
+
+        .search-container {
+            display: flex; background: var(--surface); padding: 8px 15px;
+            border-radius: 50px; border: 1px solid var(--glass); align-items: center;
+        }
+        .search-container input {
+            background: transparent; border: none; color: white; margin-left: 10px; outline: none; width: 200px;
+        }
+
+        /* --- Hero --- */
+        .hero {
+            height: 80vh;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; position: relative; overflow: hidden;
+            background: radial-gradient(circle at 50% 50%, rgba(188, 19, 254, 0.1) 0%, transparent 50%);
+        }
+        .hero h1 { font-size: clamp(2.5rem, 8vw, 5rem); font-weight: 800; margin-bottom: 20px; line-height: 1.1; }
+        .hero p { color: var(--text-dim); max-width: 600px; margin-bottom: 30px; font-size: 1.1rem; }
+        .cta-btn {
+            padding: 15px 40px; border-radius: 50px; border: none;
+            background: linear-gradient(45deg, var(--accent-p), var(--accent-f));
+            color: white; font-weight: bold; cursor: pointer; font-size: 1rem;
+            box-shadow: 0 0 20px rgba(188, 19, 254, 0.4); transition: var(--transition);
+        }
+        .cta-btn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(188, 19, 254, 0.6); }
+
+        /* --- Floating Icons Animation --- */
+        .floating-icon {
+            position: absolute; color: var(--glass); font-size: 2rem; z-index: -1;
+            animation: float 10s infinite linear;
+        }
+
+        /* --- Categories --- */
+        .section-title { margin: 60px 0 30px; font-size: 2rem; display: flex; align-items: center; gap: 15px; }
+        .grid-categories {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px;
+        }
+        .category-card {
+            background: var(--surface); padding: 25px; border-radius: 20px; text-align: center;
+            border: 1px solid var(--glass); cursor: pointer; transition: var(--transition);
+        }
+        .category-card:hover { 
+            background: var(--glass); border-color: var(--accent-c); transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 242, 255, 0.1);
+        }
+        .category-card i { font-size: 2rem; margin-bottom: 15px; color: var(--accent-c); }
+
+        /* --- Filters Bar --- */
+        .filters-bar {
+            margin: 40px 0; display: flex; flex-wrap: wrap; gap: 15px; 
+            padding: 20px; background: var(--surface); border-radius: 15px;
+        }
+        select {
+            background: var(--bg); color: white; border: 1px solid var(--glass);
+            padding: 8px 15px; border-radius: 8px; outline: none;
+        }
+
+        /* --- Game Grid --- */
+        .game-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px;
+        }
+        .game-card {
+            background: var(--surface); border-radius: 24px; overflow: hidden;
+            border: 1px solid var(--glass); transition: var(--transition); position: relative;
+        }
+        .game-card:hover { transform: translateY(-10px); border-color: var(--accent-p); }
+        .card-img { height: 160px; background: #222; position: relative; overflow: hidden; }
+        .card-img img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
+        .card-content { padding: 20px; }
+        .genre-tag { font-size: 0.7rem; text-transform: uppercase; color: var(--accent-c); font-weight: bold; }
+        .game-title { font-size: 1.2rem; margin: 8px 0; font-weight: 700; }
+        .game-meta { display: flex; justify-content: space-between; align-items: center; color: var(--text-dim); font-size: 0.9rem; }
+        .rating { color: #ffb800; }
+        .platform-badge { font-size: 0.8rem; background: var(--glass); padding: 2px 8px; border-radius: 4px; }
+        
+        .card-actions { margin-top: 15px; display: flex; gap: 10px; }
+        .install-btn {
+            flex: 1; padding: 10px; border-radius: 12px; border: none;
+            background: var(--glass); color: white; font-weight: 600; cursor: pointer; transition: var(--transition);
+        }
+        .install-btn:hover { background: var(--accent-c); color: black; }
+        .fav-btn {
+            width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--glass);
+            background: transparent; color: white; cursor: pointer; transition: var(--transition);
+        }
+        .fav-btn.active { color: var(--accent-f); border-color: var(--accent-f); }
+
+        /* --- New Releases Scroll --- */
+        .horizontal-scroll {
+            display: flex; overflow-x: auto; gap: 20px; padding-bottom: 20px;
+        }
+        .horizontal-scroll::-webkit-scrollbar { height: 4px; }
+        .new-badge {
+            position: absolute; top: 10px; left: 10px; background: var(--accent-f);
+            color: white; padding: 4px 10px; border-radius: 5px; font-size: 0.7rem; font-weight: 800;
+        }
+
+        /* --- Top Charts --- */
+        .charts-container {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;
+        }
+        .chart-list { background: var(--surface); border-radius: 20px; padding: 20px; }
+        .chart-item {
+            display: flex; align-items: center; gap: 15px; padding: 12px 0; border-bottom: 1px solid var(--glass);
+        }
+        .rank { font-size: 1.5rem; font-weight: 800; color: var(--glass); width: 30px; }
+
+        /* --- Modal --- */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px);
+            z-index: 2000; display: none; justify-content: center; align-items: center; padding: 20px;
+        }
+        .modal-content {
+            background: #111; width: 100%; max-width: 800px; border-radius: 30px;
+            max-height: 90vh; overflow-y: auto; position: relative; border: 1px solid var(--glass);
+        }
+        .close-modal { position: absolute; top: 20px; right: 20px; font-size: 2rem; cursor: pointer; color: var(--text-dim); }
+        .modal-body { padding: 40px; }
+
+        /* --- Responsive --- */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero h1 { font-size: 3rem; }
+            .game-grid { grid-template-columns: 1fr; }
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes float {
+            from { transform: translateY(100vh) rotate(0deg); }
+            to { transform: translateY(-100px) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader"><div class="spinner"></div></div>
+
+    <nav>
+        <div class="container nav-content">
+            <div class="logo"><i class="fas fa-gamepad"></i> GameVault</div>
+            <div class="nav-links">
+                <a href="#home">Home</a>
+                <a href="#categories">Categories</a>
+                <a href="#featured">Featured</a>
+                <a href="#charts">Top Charts</a>
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="mainSearch" placeholder="Search games...">
+                </div>
+            </div>
+            <i class="fas fa-bars mobile-menu-toggle" style="font-size: 1.5rem; cursor: pointer; display: none;"></i>
+        </div>
+    </nav>
+
+    <header class="hero" id="home">
+        <div id="particles"></div>
+        <div class="container">
+            <h1>Every Mobile Game.<br><span style="color:var(--accent-c)">One Place.</span></h1>
+            <p>Discover, track, and download the world's best mobile titles. From hyper-casual puzzles to epic MMORPGs, we've cataloged them all.</p>
+            <button class="cta-btn" onclick="document.getElementById('featured').scrollIntoView()">Explore Games</button>
+        </div>
+    </header>
+
+    <section class="container" id="categories">
+        <h2 class="section-title"><i class="fas fa-th-large"></i> Explore Categories</h2>
+        <div class="grid-categories" id="categoryGrid">
+            <!-- Categories injected by JS -->
+        </div>
+    </section>
+
+    <section class="container" id="featured">
+        <h2 class="section-title"><i class="fas fa-fire"></i> Featured Titles</h2>
+        
+        <div class="filters-bar">
+            <select id="genreFilter">
+                <option value="all">All Genres</option>
+            </select>
+            <select id="platformFilter">
+                <option value="all">All Platforms</option>
+                <option value="iOS">iOS</option>
+                <option value="Android">Android</option>
+                <option value="Both">Both</option>
+            </select>
+            <select id="sortOrder">
+                <option value="pop">Most Popular</option>
+                <option value="rate">Highest Rated</option>
+                <option value="az">Name A-Z</option>
+            </select>
+        </div>
+
+        <div class="game-grid" id="mainGameGrid">
+            <!-- Games injected by JS -->
+        </div>
+    </section>
+
+    <section class="container" id="new-releases" style="margin-top: 80px;">
+        <h2 class="section-title"><i class="fas fa-rocket"></i> New Releases</h2>
+        <div class="horizontal-scroll" id="newReleasesGrid">
+            <!-- New games injected by JS -->
+        </div>
+    </section>
+
+    <section class="container" id="charts" style="margin-top: 80px;">
+        <h2 class="section-title"><i class="fas fa-chart-line"></i> Top Charts</h2>
+        <div class="charts-container">
+            <div class="chart-list">
+                <h3>Top Free</h3><br>
+                <div id="chartFree"></div>
+            </div>
+            <div class="chart-list">
+                <h3>Top Paid</h3><br>
+                <div id="chartPaid"></div>
+            </div>
+            <div class="chart-list">
+                <h3>Top Grossing</h3><br>
+                <div id="chartGrossing"></div>
+            </div>
+        </div>
+    </section>
+
+    <footer style="background: var(--surface); margin-top: 100px; padding: 60px 0;">
+        <div class="container" style="text-align: center;">
+            <div class="logo" style="justify-content: center; margin-bottom: 20px;"><i class="fas fa-gamepad"></i> GameVault</div>
+            <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 30px;">
+                <a href="#" style="color: var(--text-dim); text-decoration: none;">About</a>
+                <a href="#" style="color: var(--text-dim); text-decoration: none;">Privacy</a>
+                <a href="#" style="color: var(--text-dim); text-decoration: none;">Contact</a>
+            </div>
+            <div style="font-size: 1.5rem; display: flex; justify-content: center; gap: 20px; color: var(--accent-c);">
+                <i class="fab fa-twitter"></i>
+                <i class="fab fa-discord"></i>
+                <i class="fab fa-youtube"></i>
+            </div>
+            <p style="margin-top: 20px; color: var(--text-dim); font-size: 0.8rem;">&copy; 2024 GameVault Media. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Game Detail Modal -->
+    <div class="modal-overlay" id="gameModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModal">&times;</span>
+            <div id="modalData" class="modal-body">
+                <!-- Data injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /** 1. DATA OBJECT **/
+        const GAMES_DATA = [
+            { id: 1, name: "Genshin Impact", genre: "RPG & Strategy", platform: "Both", rating: 4.8, price: "Free", releaseDate: "2020-09-28", img: "https://images.unsplash.com/photo-1614680376593-902f74cf0d41?auto=format&fit=crop&w=400&q=80", desc: "Embark on a journey across Teyvat to find your lost sibling and unravel the mysteries of the gods." },
+            { id: 2, name: "PUBG Mobile", genre: "Battle Royale", platform: "Both", rating: 4.5, price: "Free", releaseDate: "2018-03-19", img: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400&q=80", desc: "The original battle royale on mobile. Drop in, gear up, and compete." },
+            { id: 3, name: "Minecraft", genre: "Simulation & Sandbox", platform: "Both", rating: 4.7, price: "Paid", releaseDate: "2011-11-18", img: "https://images.unsplash.com/photo-1605898835373-02f4427f5522?auto=format&fit=crop&w=400&q=80", desc: "Explore infinite worlds and build everything from the simplest of homes to the grandest of castles." },
+            { id: 4, name: "Among Us", genre: "Casual & Hyper-Casual", platform: "Both", rating: 4.4, price: "Free", releaseDate: "2018-06-15", img: "https://images.unsplash.com/photo-1615587121245-e63363327663?auto=format&fit=crop&w=400&q=80", desc: "Play online or over local WiFi with 4-15 players as you attempt to prep your spaceship for departure." },
+            { id: 5, name: "Call of Duty: Mobile", genre: "Shooter (FPS/TPS)", platform: "Both", rating: 4.7, price: "Free", releaseDate: "2019-10-01", img: "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&w=400&q=80", desc: "Iconic multiplayer maps and modes. 100 player Battle Royale battleground? Fast 5v5 team deathmatch?" },
+            { id: 6, name: "Clash of Clans", genre: "RPG & Strategy", platform: "Both", rating: 4.6, price: "Free", releaseDate: "2012-08-02", img: "https://images.unsplash.com/photo-1580234811497-9bd7fd0f37a9?auto=format&fit=crop&w=400&q=80", desc: "Lead your clan to victory! Build your village, raise a clan, and compete in epic Clan Wars." },
+            { id: 7, name: "Asphalt 9: Legends", genre: "Sports & Racing", platform: "Both", rating: 4.5, price: "Free", releaseDate: "2018-07-25", img: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=400&q=80", desc: "Take the wheel of real cars from high-end renowned legendary car manufacturers." },
+            { id: 8, name: "Monument Valley", genre: "Puzzle & Brain", platform: "Both", rating: 4.8, price: "Paid", releaseDate: "2014-04-03", img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=400&q=80", desc: "Manipulate impossible architecture and guide a silent princess through a stunningly beautiful world." },
+            { id: 9, name: "Honkai: Star Rail", genre: "RPG & Strategy", platform: "Both", rating: 4.9, price: "Free", releaseDate: "2023-04-26", img: "https://images.unsplash.com/photo-1614680376593-902f74cf0d41?auto=format&fit=crop&w=400&q=100", desc: "A space fantasy RPG with turn-based combat. Board the Astral Express!" },
+            { id: 10, name: "Candy Crush Saga", genre: "Puzzle & Brain", platform: "Both", rating: 4.6, price: "Free", releaseDate: "2012-04-12", img: "https://images.unsplash.com/photo-1553481187-be93c21490a9?auto=format&fit=crop&w=400&q=80", desc: "Switch and match Candies in this divine puzzle adventure to progress to the next level." },
+            { id: 11, name: "Pokemon GO", genre: "Action & Adventure", platform: "Both", rating: 4.1, price: "Free", releaseDate: "2016-07-06", img: "https://images.unsplash.com/photo-1613508053402-92ef97269042?auto=format&fit=crop&w=400&q=80", desc: "Join Trainers across the globe who are discovering Pokémon as they explore the world around them." },
+            { id: 12, name: "Brawl Stars", genre: "Action & Adventure", platform: "Both", rating: 4.4, price: "Free", releaseDate: "2018-12-12", img: "https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=400&q=80", desc: "Fast-paced 3v3 multiplayer and battle royale made for mobile!" },
+            { id: 13, name: "Alto's Odyssey", genre: "Casual & Hyper-Casual", platform: "Both", rating: 4.7, price: "Paid", releaseDate: "2018-02-21", img: "https://images.unsplash.com/photo-1502134249126-9f3755a50d78?auto=format&fit=crop&w=400&q=80", desc: "Just beyond the horizon sits a majestic desert, vast and unexplored." },
+            { id: 14, name: "Dead Cells", genre: "Action & Adventure", platform: "Both", rating: 4.8, price: "Paid", releaseDate: "2019-08-28", img: "https://images.unsplash.com/photo-1551103782-8ab07afd45c1?auto=format&fit=crop&w=400&q=80", desc: "Death is not the end. Play as a failed alchemical experiment and explore the sprawling, ever-changing castle." },
+            { id: 15, name: "Clash Royale", genre: "Tower Defense", platform: "Both", rating: 4.3, price: "Free", releaseDate: "2016-03-02", img: "https://images.unsplash.com/photo-1580234811497-9bd7fd0f37a9?auto=format&fit=crop&w=400&q=80", desc: "Enter the Arena! Build your Battle Deck and outsmart the enemy in fast real-time battles." },
+            { id: 16, name: "Roblox", genre: "Simulation & Sandbox", platform: "Both", rating: 4.4, price: "Free", releaseDate: "2006-09-01", img: "https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=400&q=80", desc: "The ultimate virtual universe that lets you create, share experiences with friends, and be anything you can imagine." },
+            { id: 17, name: "Subway Surfers", genre: "Casual & Hyper-Casual", platform: "Both", rating: 4.6, price: "Free", releaseDate: "2012-05-24", img: "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?auto=format&fit=crop&w=400&q=80", desc: "Dodge the trains! Help Jake, Tricky & Fresh escape from the grumpy Inspector and his dog." },
+            { id: 18, name: "Mobile Legends", genre: "MMORPG", platform: "Both", rating: 4.2, price: "Free", releaseDate: "2016-07-14", img: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400&q=80", desc: "Join your friends in a brand new 5v5 MOBA showdown against real human opponents!" },
+            { id: 19, name: "Sky: Children of Light", genre: "RPG & Strategy", platform: "Both", rating: 4.7, price: "Free", releaseDate: "2019-07-18", img: "https://images.unsplash.com/photo-1502134249126-9f3755a50d78?auto=format&fit=crop&w=400&q=80", desc: "A peaceful, social RPG designed to be played with others. Explore the seven realms of a beautiful kingdom." },
+            { id: 20, name: "Free Fire", genre: "Battle Royale", platform: "Both", rating: 4.0, price: "Free", releaseDate: "2017-09-30", img: "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&w=400&q=80", desc: "Free Fire is the ultimate survival shooter game available on mobile. Each 10-minute game places you on a remote island." },
+            { id: 21, name: "Stardew Valley", genre: "Simulation & Sandbox", platform: "Both", rating: 4.9, price: "Paid", releaseDate: "2016-02-26", img: "https://images.unsplash.com/photo-1580234811497-9bd7fd0f37a9?auto=format&fit=crop&w=400&q=80", desc: "Move to the countryside and cultivate a new life in this award-winning open-ended farming RPG." },
+            { id: 22, name: "League of Legends: Wild Rift", genre: "MMORPG", platform: "Both", rating: 4.6, price: "Free", releaseDate: "2020-10-27", img: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400&q=80", desc: "The skills-and-strategy 5v5 MOBA experience of League of Legends, now on mobile." },
+            { id: 23, name: "Slay the Spire", genre: "Card & Board Games", platform: "Both", rating: 4.8, price: "Paid", releaseDate: "2019-01-23", img: "https://images.unsplash.com/photo-1614680376593-902f74cf0d41?auto=format&fit=crop&w=400&q=80", desc: "Fuse card games and roguelikes together to make the best single player deckbuilder we could." },
+            { id: 24, name: "Vampire Survivors", genre: "Action & Adventure", platform: "Both", rating: 4.9, price: "Free", releaseDate: "2022-12-08", img: "https://images.unsplash.com/photo-1614680376593-902f74cf0d41?auto=format&fit=crop&w=400&q=80", desc: "Mow down thousands of night creatures and survive until dawn!" },
+            { id: 25, name: "Marvel Snap", genre: "Card & Board Games", platform: "Both", rating: 4.5, price: "Free", releaseDate: "2022-10-18", img: "https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?auto=format&fit=crop&w=400&q=80", desc: "Fast-paced, strategic card battler that puts you in control of the entire Marvel Multiverse." },
+            { id: 26, name: "Limbo", genre: "Horror & Survival", platform: "Both", rating: 4.8, price: "Paid", releaseDate: "2010-07-21", img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=400&q=80", desc: "Uncertain of his sister's fate, a boy enters LIMBO." },
+            { id: 27, name: "Plants vs Zombies", genre: "Tower Defense", platform: "Both", rating: 4.7, price: "Free", releaseDate: "2009-05-05", img: "https://images.unsplash.com/photo-1553481187-be93c21490a9?auto=format&fit=crop&w=400&q=80", desc: "Get ready to soil your plants as a mob of fun-loving zombies is about to invade your home." },
+            { id: 28, name: "Cytus II", genre: "Rhythm & Music", platform: "Both", rating: 4.8, price: "Paid", releaseDate: "2018-03-07", img: "https://images.unsplash.com/photo-1514525253361-bee8a19740c1?auto=format&fit=crop&w=400&q=80", desc: "A music rhythm game created by Rayark Games. Following the footsteps of its predecessor." },
+            { id: 29, name: "The Room", genre: "Puzzle & Brain", platform: "Both", rating: 4.9, price: "Paid", releaseDate: "2012-09-19", img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=400&q=80", desc: "A physical puzzler, wrapped in a mystery game, inside a beautifully tactile 3D world." },
+            { id: 30, name: "Arknights", genre: "Tower Defense", platform: "Both", rating: 4.6, price: "Free", releaseDate: "2020-01-16", img: "https://images.unsplash.com/photo-1614680376593-902f74cf0d41?auto=format&fit=crop&w=400&q=80", desc: "Take on the role of a key member of Rhodes Island, a pharmaceutical company that fights both a deadly infection and the unrest it leaves in its wake." }
+        ];
+
+        const CATEGORIES = [
+            { name: "Action & Adventure", icon: "fa-bolt" }, { name: "RPG & Strategy", icon: "fa-chess" },
+            { name: "Puzzle & Brain", icon: "fa-brain" }, { name: "Sports & Racing", icon: "fa-flag-checkered" },
+            { name: "Simulation & Sandbox", icon: "fa-cube" }, { name: "Horror & Survival", icon: "fa-ghost" },
+            { name: "Card & Board Games", icon: "fa-layer-group" }, { name: "Casual & Hyper-Casual", icon: "fa-mug-hot" },
+            { name: "Battle Royale", icon: "fa-person-rifle" }, { name: "MMORPG", icon: "fa-users" },
+            { name: "Tower Defense", icon: "fa-fort-awesome" }, { name: "Rhythm & Music", icon: "fa-music" },
+            { name: "Fighting", icon: "fa-hand-fist" }, { name: "Shooter (FPS/TPS)", icon: "fa-crosshairs" },
+            { name: "Educational", icon: "fa-graduation-cap" }, { name: "Trivia & Quiz", icon: "fa-question" }
+        ];
+
+        /** 2. DOM ELEMENTS **/
+        const gameGrid = document.getElementById('mainGameGrid');
+        const categoryGrid = document.getElementById('categoryGrid');
+        const newReleasesGrid = document.getElementById('newReleasesGrid');
+        const genreFilter = document.getElementById('genreFilter');
+        const platformFilter = document.getElementById('platformFilter');
+        const sortOrder = document.getElementById('sortOrder');
+        const mainSearch = document.getElementById('mainSearch');
+        const modal = document.getElementById('gameModal');
+        const modalData = document.getElementById('modalData');
+        const closeModal = document.getElementById('closeModal');
+
+        let favorites = JSON.parse(localStorage.getItem('gv_favs')) || [];
+
+        /** 3. FUNCTIONS **/
+
+        function init() {
+            renderCategories();
+            renderGames(GAMES_DATA);
+            renderNewReleases();
+            renderCharts();
+            populateGenreFilter();
+            createFloatingIcons();
+            
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
+            }, 1000);
+        }
+
+        function renderCategories() {
+            categoryGrid.innerHTML = CATEGORIES.map(cat => `
+                <div class="category-card" onclick="filterByCategory('${cat.name}')">
+                    <i class="fas ${cat.icon}"></i>
+                    <p>${cat.name}</p>
+                </div>
+            `).join('');
+        }
+
+        function renderGames(data) {
+            gameGrid.innerHTML = data.map(game => createGameCard(game)).join('');
+        }
+
+        function createGameCard(game, isNew = false) {
+            const isFav = favorites.includes(game.id);
+            return `
+                <div class="game-card" onclick="openGame(${game.id})">
+                    <div class="card-img">
+                        ${isNew ? '<span class="new-badge">NEW</span>' : ''}
+                        <img src="${game.img}" alt="${game.name}">
+                    </div>
+                    <div class="card-content">
+                        <span class="genre-tag">${game.genre}</span>
+                        <h3 class="game-title">${game.name}</h3>
+                        <div class="game-meta">
+                            <span class="rating"><i class="fas fa-star"></i> ${game.rating}</span>
+                            <span class="platform-badge">${game.platform}</span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="install-btn">Details</button>
+                            <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav(event, ${game.id})">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderNewReleases() {
+            const sorted = [...GAMES_DATA].sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate)).slice(0, 8);
+            newReleasesGrid.innerHTML = sorted.map(game => createGameCard(game, true)).join('');
+        }
+
+        function renderCharts() {
+            const free = GAMES_DATA.filter(g => g.price === "Free").slice(0, 10);
+            const paid = GAMES_DATA.filter(g => g.price === "Paid").slice(0, 10);
+            
+            const createChartItem = (g, i) => `
+                <div class="chart-item" onclick="openGame(${g.id})">
+                    <span class="rank">${i + 1}</span>
+                    <div style="flex:1">
+                        <div style="font-weight:600">${g.name}</div>
+                        <div style="font-size:0.8rem; color:var(--text-dim)">${g.genre}</div>
+                    </div>
+                    <div style="color:var(--accent-c)">${g.rating}★</div>
+                </div>
+            `;
+
+            document.getElementById('chartFree').innerHTML = free.map(createChartItem).join('');
+            document.getElementById('chartPaid').innerHTML = paid.map(createChartItem).join('');
+            document.getElementById('chartGrossing').innerHTML = [...GAMES_DATA].reverse().slice(0, 10).map(createChartItem).join('');
+        }
+
+        function populateGenreFilter() {
+            CATEGORIES.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.name;
+                opt.textContent = cat.name;
+                genreFilter.appendChild(opt);
+            });
+        }
+
+        /** 4. FILTER LOGIC **/
+        function updateFilters() {
+            let filtered = GAMES_DATA.filter(game => {
+                const searchMatch = game.name.toLowerCase().includes(mainSearch.value.toLowerCase());
+                const genreMatch = genreFilter.value === 'all' || game.genre === genreFilter.value;
+                const platformMatch = platformFilter.value === 'all' || game.platform === platformFilter.value || game.platform === 'Both';
+                return searchMatch && genreMatch && platformMatch;
+            });
+
+            if (sortOrder.value === 'rate') filtered.sort((a, b) => b.rating - a.rating);
+            if (sortOrder.value === 'az') filtered.sort((a, b) => a.name.localeCompare(b.name));
+            if (sortOrder.value === 'pop') filtered.sort((a, b) => b.id - a.id);
+
+            renderGames(filtered);
+        }
+
+        function filterByCategory(cat) {
+            genreFilter.value = cat;
+            updateFilters();
+            document.getElementById('featured').scrollIntoView();
+        }
+
+        /** 5. INTERACTIVITY **/
+        function toggleFav(e, id) {
+            e.stopPropagation();
+            if (favorites.includes(id)) {
+                favorites = favorites.filter(fid => fid !== id);
+            } else {
+                favorites.push(id);
+            }
+            localStorage.setItem('gv_favs', JSON.stringify(favorites));
+            updateFilters();
+        }
+
+        function openGame(id) {
+            const game = GAMES_DATA.find(g => g.id === id);
+            modalData.innerHTML = `
+                <div style="display:flex; gap:30px; flex-wrap:wrap">
+                    <img src="${game.img}" style="width:200px; height:200px; border-radius:20px; object-fit:cover">
+                    <div style="flex:1">
+                        <h2 style="font-size:2.5rem; margin-bottom:10px">${game.name}</h2>
+                        <p style="color:var(--accent-c); font-weight:bold; margin-bottom:20px">${game.genre} • ${game.platform}</p>
+                        <div style="display:flex; gap:10px; margin-bottom:20px">
+                            <span style="background:var(--glass); padding:10px 20px; border-radius:10px">Rating: ${game.rating} ★</span>
+                            <span style="background:var(--glass); padding:10px 20px; border-radius:10px">Price: ${game.price}</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top:30px; line-height:1.6; color:var(--text-dim)">
+                    <h3>About the Game</h3><br>
+                    <p>${game.desc}</p>
+                    <br><br>
+                    <h3>Available on</h3><br>
+                    <div style="display:flex; gap:15px">
+                        <button class="cta-btn" style="background:#000; border:1px solid var(--glass)"><i class="fab fa-apple"></i> App Store</button>
+                        <button class="cta-btn" style="background:#000; border:1px solid var(--glass)"><i class="fab fa-google-play"></i> Google Play</button>
+                    </div>
+                </div>
+            `;
+            modal.style.display = 'flex';
+        }
+
+        function createFloatingIcons() {
+            const hero = document.getElementById('particles');
+            const icons = ['fa-gamepad', 'fa-ghost', 'fa-vr-cardboard', 'fa-puzzle-piece', 'fa-trophy'];
+            for (let i = 0; i < 15; i++) {
+                const el = document.createElement('i');
+                el.className = `fas ${icons[Math.floor(Math.random() * icons.length)]} floating-icon`;
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.animationDelay = Math.random() * 5 + 's';
+                el.style.fontSize = (Math.random() * 20 + 20) + 'px';
+                hero.appendChild(el);
+            }
+        }
+
+        /** 6. EVENT LISTENERS **/
+        mainSearch.addEventListener('input', updateFilters);
+        genreFilter.addEventListener('change', updateFilters);
+        platformFilter.addEventListener('change', updateFilters);
+        sortOrder.addEventListener('change', updateFilters);
+        closeModal.onclick = () => modal.style.display = 'none';
+        window.onclick = (e) => { if (e.target == modal) modal.style.display = 'none'; };
+
+        // Start app
+        init();
+    </script>
+</body>
+</html>
